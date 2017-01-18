@@ -1,7 +1,6 @@
 package org.enantra.enantra;
 
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
@@ -15,6 +14,8 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import java.util.Locale;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -24,36 +25,36 @@ public class MainActivity extends AppCompatActivity {
     String enantraID;
     int eidINT;
     ProgressDialog pd;
-    res r;
-    Boolean success=false;
+    EnantraResponse r;
+    Boolean success = false;
     LinearLayout sv;
     RelativeLayout get;
     RelativeLayout set;
     int width;
     EditText eid;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        eid=(EditText)findViewById(R.id.eid);
-        Button check=(Button) findViewById(R.id.check);
-        Button back=(Button) findViewById(R.id.back);
-        sv=(LinearLayout) findViewById(R.id.display);
-        pd=new ProgressDialog(MainActivity.this);
+        eid = (EditText) findViewById(R.id.eid);
+        Button check = (Button) findViewById(R.id.check);
+        Button back = (Button) findViewById(R.id.back);
+        sv = (LinearLayout) findViewById(R.id.display);
+        pd = new ProgressDialog(MainActivity.this);
 
         //two relativelayouts to get and display
-        get=(RelativeLayout)findViewById(R.id.getdata);
-        set=(RelativeLayout)findViewById(R.id.displaydata);
-
+        get = (RelativeLayout) findViewById(R.id.getdata);
+        set = (RelativeLayout) findViewById(R.id.displaydata);
 
         width = Resources.getSystem().getDisplayMetrics().widthPixels;
 
         check.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-               pd.show();
-               getData();
+                pd.show();
+                getData();
             }
         });
 
@@ -67,150 +68,148 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    void getData(){
-
-        enantraID=eid.getText().toString();
-        eidINT=Integer.parseInt(enantraID);
+    void getData() {
+        enantraID = eid.getText().toString();
+        eidINT = Integer.parseInt(enantraID);
         //get request for the data
         ApiInterface apiService = ApiClient.getClient().create(ApiInterface.class);
 
-        Call<res> call = apiService.getData(eidINT);
-        call.enqueue(new Callback<res>() {
+        Call<EnantraResponse> call = apiService.getData(eidINT);
+        call.enqueue(new Callback<EnantraResponse>() {
             @Override
-            public void onResponse(Call<res>call, Response<res> response) {
-                res result = response.body();
-                Log.i("Logincheck",result.toString());
+            public void onResponse(Call<EnantraResponse> call, Response<EnantraResponse> response) {
+                EnantraResponse result = response.body();
                 pd.dismiss();
-                if(result.status.equals("0")){
-                    success=false;
-                    if(result.error!=null||result.error.length()<=0){
-                        Snackbar.make(findViewById(android.R.id.content), "Error: "+result.error, Snackbar.LENGTH_LONG)
-                                .show();
+                if (result.getStatus() == 0) {
+                    success = false;
+                    if (result.getError() != null || result.getError().length() <= 0) {
+                        Snackbar.make(
+                                findViewById(android.R.id.content),
+                                "Error: " + result.getError(),
+                                Snackbar.LENGTH_LONG
+                        ).show();
                     }
-                }
-                else{
-                    success=true;
-                    r=result;
+                } else {
+                    success = true;
+                    r = result;
                     displayData();
                 }
 
             }
-            @Override
-            public void onFailure(Call<res>call, Throwable t) {
 
+            @Override
+            public void onFailure(Call<EnantraResponse> call, Throwable t) {
                 pd.dismiss();
-                Log.i("TEST","On Failure:"+t.getMessage());
-                Snackbar.make(findViewById(android.R.id.content), "Error: "+"Please check your internet Connection", Snackbar.LENGTH_LONG)
-                        .show();
+                Log.d("EnantraTest", "On Failure :" + t.getMessage());
+                Snackbar.make(
+                        findViewById(android.R.id.content),
+                        "Error: Please check your internet Connection",
+                        Snackbar.LENGTH_LONG
+                ).show();
             }
         });
 
     }
-    String eventsText(eve e){
-        String s="";
-        if(e.reg.equals("false")){
-            s=s+"Not Registered";
-        }
-        else{
-            s=s+"Registered &";
-            if(e.paid.equals("false")){
-                s=s+"Not paid";
-            }
-            else{
-                s=s+"Paid & PayId:"+e.getPayId();
-            }
-        }
-        return s;
-    }
-    String brandManagerText(eve e){
-        String s="";
-        if(e.reg.equals("false")){
-            s=s+"Not Registered";
-        }
-        else {
-            s = s + "Registered ";
-        }
-        return s;
-    }
-    //show data
-    void displayData(){
 
-        //change views
+    void displayData() {
+
         get.setVisibility(View.GONE);
         set.setVisibility(View.VISIBLE);
 
-        //DISPLAY ENANTRA ID
-        TextView ed= new TextView(MainActivity.this);
-        ed.setText("EnantraId: "+r.enantraId);
-        ed.setTextSize(TypedValue.COMPLEX_UNIT_SP,20);
-        sv.addView(ed);
 
-        //DISPLAY DETAILS
-        TextView na=new TextView(MainActivity.this);
-        na.setText("Name: "+r.getD().getName());
-        na.setTextSize(TypedValue.COMPLEX_UNIT_SP,20);
-        na.setWidth(width);
-        sv.addView(na);
+        TextView details = new TextView(MainActivity.this);
+        details.setText("Details");
+        details.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
+        details.setWidth(width);
+        sv.addView(details);
 
-        TextView ge=new TextView(MainActivity.this);
-        ge.setText("Gender:"+r.getD().getGender());
-        ge.setTextSize(TypedValue.COMPLEX_UNIT_SP,20);
-        ge.setWidth(width);
-        sv.addView(ge);
+        TextView id = new TextView(MainActivity.this);
+        id.setText(String.format(Locale.ENGLISH, "EnantraID: %d", r.getEnantraId()));
+        id.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
+        sv.addView(id);
 
-        TextView ag=new TextView(MainActivity.this);
-        ag.setText("Age: "+r.getD().getAge());
-        ag.setTextSize(TypedValue.COMPLEX_UNIT_SP,20);
-        ag.setWidth(width);
-        sv.addView(ag);
+        TextView name = new TextView(MainActivity.this);
+        name.setText(String.format(Locale.ENGLISH, "Name: %s", r.getDetails().getName()));
+        name.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
+        name.setWidth(width);
+        sv.addView(name);
 
-        TextView em=new TextView(MainActivity.this);
-        em.setText("Email: "+r.getD().getEmail());
-        em.setTextSize(TypedValue.COMPLEX_UNIT_SP,20);
-        em.setWidth(width);
-        sv.addView(em);
+        TextView email = new TextView(MainActivity.this);
+        email.setText(String.format(Locale.ENGLISH, "Email: %s", r.getDetails().getEmail()));
+        email.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
+        email.setWidth(width);
+        sv.addView(email);
 
-        TextView ph=new TextView(MainActivity.this);
-        ph.setText("Phone: "+r.getD().getPhone());
-        ph.setTextSize(TypedValue.COMPLEX_UNIT_SP,20);
-        ph.setWidth(width);
-        sv.addView(ph);
+//        TextView phone = new TextView(MainActivity.this);
+//        phone.setText(String.format(Locale.ENGLISH, "Phone: %s", r.getDetails().getPhone()));
+//        phone.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
+//        phone.setWidth(width);
+//        sv.addView(phone);
 
-        TextView ref=new TextView(MainActivity.this);
-        ref.setText("Referral Id: "+r.getD().getRef());
-        ref.setTextSize(TypedValue.COMPLEX_UNIT_SP,20);
-        ref.setWidth(width);
-        sv.addView(ref);
+        TextView brandManager = new TextView(MainActivity.this);
+        brandManager.setText(String.format("Brand Manager: %s", r.getBrand()));
+        brandManager.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
+        brandManager.setWidth(width);
+        sv.addView(brandManager);
 
-        //DISPLAY EVENTS
-        TextView st=new TextView(MainActivity.this);
-        st.setText("Street: "+eventsText(r.e.getStreet()));
-        st.setTextSize(TypedValue.COMPLEX_UNIT_SP,20);
-        st.setWidth(width);
-        sv.addView(st);
+        TextView miniEvents = new TextView(MainActivity.this);
+        miniEvents.setText(String.format("Mini Events: %s", r.getMiniEvents()));
+        miniEvents.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
+        miniEvents.setWidth(width);
+        sv.addView(miniEvents);
 
-        TextView six=new TextView(MainActivity.this);
-        six.setText("SixDegree: "+eventsText(r.e.getSixDegree()));
-        six.setTextSize(TypedValue.COMPLEX_UNIT_SP,20);
-        six.setWidth(width);
-        sv.addView(six);
+        TextView sixdegree = new TextView(MainActivity.this);
+        sixdegree.setText("SixDegree");
+        sixdegree.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
+        sixdegree.setWidth(width);
+        sv.addView(sixdegree);
 
-        TextView ws=new TextView(MainActivity.this);
-        ws.setText("Workshop: "+eventsText(r.e.getWorkshop()));
-        ws.setTextSize(TypedValue.COMPLEX_UNIT_SP,20);
-        ws.setWidth(width);
-        sv.addView(ws);
+        for (Ticket ticket : r.getTickets()) {
+            TextView ticketView = new TextView(MainActivity.this);
+            ticketView.setText(ticket.toString());
+            ticketView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
+            ticketView.setWidth(width);
+            sv.addView(ticketView);
+        }
 
-        TextView rw=new TextView(MainActivity.this);
-        rw.setText("Runway: "+eventsText(r.e.getRunway()));
-        rw.setWidth(width);
-        rw.setTextSize(TypedValue.COMPLEX_UNIT_SP,20);
-        sv.addView(rw);
+        TextView workshop = new TextView(MainActivity.this);
+        workshop.setText("Workshops");
+        workshop.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
+        workshop.setWidth(width);
+        sv.addView(workshop);
 
-        TextView bm=new TextView(MainActivity.this);
-        bm.setText("Brand Manager: "+brandManagerText(r.brand));
-        bm.setTextSize(TypedValue.COMPLEX_UNIT_SP,20);
-        bm.setWidth(width);
-        sv.addView(bm);
+
+        Workshops workshops = r.getWorkshops();
+
+        TextView startup = new TextView(MainActivity.this);
+        startup.setText(String.format(Locale.ENGLISH, "Startup: %s", workshops.getStartup()));
+        startup.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
+        startup.setWidth(width);
+        sv.addView(startup);
+
+        TextView growth = new TextView(MainActivity.this);
+        growth.setText(String.format(Locale.ENGLISH, "Growth Hacking: %s", workshops.getGrowth()));
+        growth.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
+        growth.setWidth(width);
+        sv.addView(growth);
+
+        TextView kids = new TextView(MainActivity.this);
+        kids.setText(String.format(Locale.ENGLISH, "Kids: %s", workshops.getKids()));
+        kids.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
+        kids.setWidth(width);
+        sv.addView(kids);
+
+        TextView abled = new TextView(MainActivity.this);
+        abled.setText(String.format(Locale.ENGLISH, "Differently abled: %s", workshops.getAbled()));
+        abled.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
+        abled.setWidth(width);
+        sv.addView(abled);
+
+        TextView stocks = new TextView(MainActivity.this);
+        stocks.setText(String.format(Locale.ENGLISH, "Stock Market: %s", workshops.getStocks()));
+        stocks.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
+        stocks.setWidth(width);
+        sv.addView(stocks);
+
     }
 }

@@ -11,5 +11,5 @@ import retrofit2.http.Query;
 public interface ApiInterface {
 
     @GET("allData/user")
-    Call<res> getData(@Query("enantraId") Integer eid);
+    Call<EnantraResponse> getData(@Query("enantraId") Integer eid);
 }

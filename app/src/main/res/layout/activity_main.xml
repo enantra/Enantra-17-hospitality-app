@@ -22,7 +22,7 @@
             android:layout_alignParentTop="true"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="101dp"
-            android:editable="true"
+            android:maxLength="4"
             android:inputType="number"
              />
 
@@ -44,7 +44,6 @@
         android:layout_height="match_parent"
         android:id="@+id/displaydata"
         android:visibility="gone">
-
 
         <Button
             android:layout_width="wrap_content"
